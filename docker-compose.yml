@@ -1,0 +1,80 @@
+
+
+services:
+
+  postgres_airflow:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow_user
+      POSTGRES_PASSWORD: airflow_pass
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"      
+      
+  flower:
+    image: mher/flower
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile   # optional if named Dockerfile
+    ports:
+      - "8080:8080"
+    command: airflow standalone 
+    depends_on:
+      - postgres_airflow
+      - redis
+    volumes:
+      - ./:/opt/airflow/project
+    
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile   # optional if named Dockerfile
+    command: scheduler  
+    depends_on:
+      - postgres_airflow
+      - redis
+      
+    volumes:
+      - ./:/opt/airflow/project   
+
+  airflow-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile   # optional if named Dockerfile
+    command: celery worker
+    depends_on:
+      - postgres_airflow
+      - redis
+    volumes:
+      - ./:/opt/airflow/project
+  airflow-worker2:
+      build:
+        context: .
+        dockerfile: Dockerfile   # optional if named Dockerfile
+      command: celery worker 
+      depends_on:
+        - postgres_airflow
+        - redis
+      volumes:
+          - ./:/opt/airflow/project      
+  airflow-worker3:
+      build:
+        context: .
+        dockerfile: Dockerfile   # optional if named Dockerfile
+      command: celery worker
+      depends_on:
+        - postgres_airflow 
+        - redis
+      volumes:
+            - ./:/opt/airflow/project           
+    

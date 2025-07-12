@@ -1,0 +1,17 @@
+
+fastapi==0.115.13
+matplotlib>=3.10.3
+pandas>=2.3.0
+pyarrow>=20.0.0
+scikit-learn>=1.7.0
+torch==2.7.1
+torchvision==0.22.1
+uvicorn==0.34.3
+flask_appbuilder==4.7.0
+mlflow==3.1.1
+psycopg2-binary==2.9.10
+asyncpg==0.30.0
+apache-airflow-providers-celery>=3.12.0
+apache-airflow[celery]
+flower==1.0.0
+redis==4.6.0
