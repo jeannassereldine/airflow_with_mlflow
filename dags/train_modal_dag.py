@@ -8,12 +8,12 @@ from airflow.decorators import task, dag
 @task
 def task_parallel_1():
     # Simulate training model B
-    time.sleep(8)
+    time.sleep(25)
     print('task_parallel_1')
 
 @task
 def task_parallel_2():
-    time.sleep(3)
+    time.sleep(10)
     print(f"task_parallel_2")
     
 @task
@@ -26,7 +26,6 @@ def train_modal_dag():
     t1 = task_parallel_1()
     t2 = task_parallel_2()
     t3 = task_parallel_3()
-    t1 >> [t2 , t3 ]
  
 dag = train_modal_dag()
     

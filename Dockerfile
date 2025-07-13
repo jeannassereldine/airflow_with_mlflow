@@ -17,19 +17,10 @@ ENV AIRFLOW__CORE__EXECUTOR=CeleryExecutor
 ENV AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow_user:airflow_pass@postgres_airflow:5432/airflow
 ENV AIRFLOW__API__BASE_URL=http://airflow-webserver:8080
 
-# ENV AIRFLOW__API__HOST=0.0.0.0
-# ENV AIRFLOW__CELERY__WORKER_LOG_SERVER_HOST=airflow-worker
-# ENV AIRFLOW__CELERY__WORKER_LOG_SERVER_PORT=8793
-
 
 COPY . /opt/airflow/project
 
 RUN chown -R 777 /opt/airflow/project/
-
-# RUN uv pip install -r requirements.txt
-# RUN pip install -r requirements.txt
-# RUN pip install -r requirements.txt
-# RUN uv init
 RUN uv pip install -r pyproject.toml
 
 # CMD ["airflow", "standalone"]
