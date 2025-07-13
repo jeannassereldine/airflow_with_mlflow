@@ -57,24 +57,5 @@ services:
       - redis
     volumes:
       - ./:/opt/airflow/project
-  airflow-worker2:
-      build:
-        context: .
-        dockerfile: Dockerfile   # optional if named Dockerfile
-      command: celery worker 
-      depends_on:
-        - postgres_airflow
-        - redis
-      volumes:
-          - ./:/opt/airflow/project      
-  airflow-worker3:
-      build:
-        context: .
-        dockerfile: Dockerfile   # optional if named Dockerfile
-      command: celery worker
-      depends_on:
-        - postgres_airflow 
-        - redis
-      volumes:
-            - ./:/opt/airflow/project           
+        
     

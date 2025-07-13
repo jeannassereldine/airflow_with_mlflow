@@ -6,28 +6,29 @@ from airflow import DAG
 from airflow.decorators import task, dag
 
 @task
-def task_parallel_1():
+def ingest_data():
     # Simulate training model B
-    time.sleep(25)
-    print('task_parallel_1')
+    time.sleep(30)
+    print('ingesting data')
 
 @task
-def task_parallel_2():
-    time.sleep(10)
-    print(f"task_parallel_2")
+def train_modal_1():
+    time.sleep(12)
+    print(f"training modal 1")
     
 @task
-def task_parallel_3():
-    time.sleep(3)
-    print(f"task_parallel_3")
+def train_modal_2():
+    time.sleep(6)
+    print(f"training modal 2")
 
 @dag
 def train_modal_dag():
-    t1 = task_parallel_1()
-    t2 = task_parallel_2()
-    t3 = task_parallel_3()
+    t1 = ingest_data()
+    t2 = train_modal_1()
+    t3 = train_modal_2()
+    t1 >> [t2 , t3 ]
  
 dag = train_modal_dag()
-    
+  
  
  
