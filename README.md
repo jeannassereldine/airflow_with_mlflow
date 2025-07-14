@@ -1,137 +1,174 @@
-Here's a complete `README.md` file for your Airflow setup using `CeleryExecutor` with distributed workers, Redis, PostgreSQL, and `uv` for dependency management:
-
----
-
 ````markdown
-# 🚀 Airflow with CeleryExecutor, Redis, and PostgreSQL (Python 3.11)
+# 🚀 MLflow + Airflow: Parallel Workflow Orchestration with Docker
 
-This project sets up **Apache Airflow** for distributed, parallel task execution using **CeleryExecutor**, with:
+This project demonstrates how to build a **parallel machine learning pipeline** using:
 
-- **PostgreSQL** as the metadata database
-- **Redis** as the message broker
-- **Celery** workers for distributed processing
-- **uv** for fast Python dependency resolution
+- **Apache Airflow 3.0.2** with **CeleryExecutor**
+- **MLflow 3.1.1** for experiment tracking
+- **Docker Compose** for container orchestration
+- **Redis + PostgreSQL** as the message broker and Airflow backend
+- **Flower** to monitor Celery workers
 
----
-
-## 📦 Stack Components
-
-| Component        | Purpose                                       |
-|------------------|-----------------------------------------------|
-| Airflow Webserver| UI for managing DAGs and monitoring tasks     |
-| Airflow Scheduler| Schedules DAG runs                            |
-| Celery Workers   | Execute tasks in parallel                     |
-| Redis            | Message broker for task distribution          |
-| PostgreSQL       | Metadata database and result backend          |
+> You can run multiple workers in parallel and track all parameters, metrics, and model training results using MLflow.
 
 ---
 
-## 🐳 Docker Setup
+## 📦 Stack Overview
 
-Make sure you have **Docker** and **Docker Compose** installed.
+| Component      | Description                            |
+|----------------|----------------------------------------|
+| Airflow        | Orchestrates DAG workflows             |
+| CeleryExecutor | Runs tasks on parallel workers         |
+| MLflow         | Tracks experiments, metrics, models    |
+| Redis          | Acts as Celery's message broker        |
+| PostgreSQL     | Stores Airflow metadata                |
+| Flower         | UI to monitor Celery workers           |
+
+---
+
+## 🚀 Getting Started
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/your-repo.git
-cd your-repo
+git clone https://github.com/jeannassereldine/airflow_with_mlflow.git
+cd mlflow-airflow-parallel
 ````
 
-### 2. Start the Stack
+### 2. Start the System
+
+To launch all services including **2 Airflow workers**:
 
 ```bash
-docker-compose up
+docker-compose up --build --scale airflow-worker=2
 ```
 
-> This builds the Airflow image with `uv`, installs dependencies from `pyproject.toml`, and starts all services.
+---
+
+## 🌐 Web Interfaces
+
+| Service          | URL                                            |
+| ---------------- | ---------------------------------------------- |
+| Airflow UI       | [http://localhost:8080](http://localhost:8080) |
+| MLflow Tracking  | [http://localhost:5000](http://localhost:5000) |
+| Flower Dashboard | [http://localhost:5555](http://localhost:5555) |
 
 ---
 
-## 🧠 Airflow Configuration Highlights
-
-The following environment variables are configured in the Dockerfile:
-
-### 🔁 `AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0`
-
-Defines **Redis** as the **Celery broker**. Airflow pushes tasks into Redis queues, and Celery workers pull from them.
-
-### ⚙️ `AIRFLOW__CORE__EXECUTOR=CeleryExecutor`
-
-Enables **distributed parallel execution** of tasks using Celery. Multiple workers can run in parallel across machines or containers.
-
-### 💾 `AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://...`
-
-Celery stores task results and metadata in **PostgreSQL**, so the web UI and scheduler can track task states.
-
-### 🌐 `AIRFLOW__API__BASE_URL=http://airflow-webserver:8080`
-
-Sets the base URL for Airflow’s REST API. Used internally and for webhooks/callbacks.
-
-### 📂 `AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/project/dags`
-
-Specifies where DAGs are located in the container. Place your DAG `.py` files here.
-
-### 🗄 `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://...`
-
-Connects Airflow to the **PostgreSQL metadata DB**. This is essential for scheduling, task state tracking, etc.
-
----
-
-## 📁 Folder Structure
+## 📁 Project Structure
 
 ```
 .
-├── dags/                   # Your DAG definitions go here
-├── pyproject.toml          # Dependencies managed with uv
-├── Dockerfile              # Builds custom Airflow image
-├── docker-compose.yml      # Starts all services
-└── README.md               # You are here
+├── dags/
+│   └── train_modal_dag.py   # DAG with MLflow integration
+├── Dockerfile               # Custom Airflow image
+├── docker-compose.yml       # Services definition
+├── pyproject.toml           # Python dependencies
+├── .dockerignore
+└── README.md
 ```
 
 ---
 
-## 📌 How to Add New Dependencies
+## 🧪 Example DAG (MLflow Integration)
+
+Inside `dags/train_modal_dag.py`, we define a DAG that:
+
+1. Simulates data ingestion
+2. Trains two ML models in parallel
+3. Logs parameters and metrics to MLflow
+
+```python
+@dag(...)
+def train_modal_dag():
+    t1 = ingest_data()
+    t2 = train_modal_1()
+    t3 = train_modal_2()
+    t1 >> [t2, t3]
+```
+
+Each training task logs model info like:
+
+```python
+mlflow.log_param("model_name", "RandomForestClassifier")
+mlflow.log_metric("test_accuracy", 0.91)
+```
+
+---
+
+## 🐳 Dockerfile Highlights
+
+* Based on `apache/airflow:slim-latest-python3.11`
+* Installs [`uv`](https://astral.sh/blog/uv-announcement/) for faster dependency resolution
+* Uses environment variables to configure Airflow, Redis, PostgreSQL, and MLflow
+
+```Dockerfile
+ENV MLFLOW_TRACKING_URI=http://mlflow:5000
+ENV AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+ENV AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0
+```
+
+---
+
+## 📦 Dependencies (`pyproject.toml`)
+
+```toml
+dependencies = [
+    "psycopg2-binary==2.9.10",
+    "apache-airflow==3.0.2",
+    "apache-airflow[celery]",
+    "asyncpg==0.30.0",
+    "apache-airflow-providers-celery>=3.12.0",
+    "flower==1.0.0",
+    "redis==4.6.0",
+    "mlflow==3.1.1"
+]
+```
+
+---
+
+## ✅ Features
+
+* ✅ Run Airflow DAGs in parallel using multiple Celery workers
+* ✅ Track model training metadata in MLflow
+* ✅ Use Docker for easy deployment and reproducibility
+* ✅ Monitor Celery workers in real-time with Flower
+
+---
+
+## 🛠️ Useful Commands
 
 ```bash
-uv add some-package
+docker-compose up --scale airflow-worker=3
 ```
-
-This updates the `pyproject.toml` automatically.
 
 ---
 
-## 🧪 Access the Airflow UI
+## 📸 Screenshots
 
-* URL: [http://localhost:8080](http://localhost:8080)
-* Default login:
-
-  * **Username**: `admin`
-  * **Password**: `you can find the password inside /airflow_home/simple_auth_manager_passwords.json.generated after doing docker-compose up`
+> *(Add your screenshots of Airflow UI and MLflow UI here)*
 
 ---
 
-## 🛠 Tips for Scaling
+## 📚 Resources
 
-To add more Celery workers, simply scale the service:
+* [Apache Airflow Documentation](https://airflow.apache.org/docs/)
+* [MLflow Documentation](https://mlflow.org/docs/latest/index.html)
+* [CeleryExecutor in Airflow](https://airflow.apache.org/docs/apache-airflow/stable/executor/celery.html)
+* [Flower Dashboard](https://flower.readthedocs.io/en/latest/)
 
-```bash
-docker compose up --scale airflow-worker=3
-```
-where 3 is the number of worker 
+---
+
+## 🧠 Author
+
+**Jean Nasser El Dine**
+🔗 [LinkedIn](https://www.linkedin.com/in/your-link)
+📫 Contact: [jean.nassereldine@gmail.com](mailto:jean.nassereldine@gmail.com)
 
 ---
 
 ## 📜 License
 
-MIT — feel free to use and modify.
+This project is licensed under the MIT License.
 
----
 
-## ✨ Credits
-
-Built with 💡 by jean nassereldine (jean.nassereldine@gmail.com)
-Based on the official [Apache Airflow Docker Stack](https://airflow.apache.org/docs/docker-stack/).
-
-```
-
----
